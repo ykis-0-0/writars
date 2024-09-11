@@ -1,35 +1,35 @@
 {
   "min-format/0byte-file": (
-    content: None,
+    content: File(None),
   ),
   "min-format/only-content": (
-    content: Some("Text content, Hello, world!"),
+    content: File("Text content, Hello, world!"),
   ),
   "min-format/optin-mode": (
-    content: None,
+    content: File(None),
     mode: 0o600,
   ),
   "min-format/optin-group": (
-    content: Some("Can include owner/group/both"),
+    content: File("Can include owner/group/both"),
     group: "wheel",
   ),
   "min-format/directory": (
     content: Directory, // Refer to /src/format/mod.rs for more content types
   ),
   "full-format/0byte-file": (
-    content: None, // EntryData::File (untagged variant)
+    content: File(None), // EntryData::File (untagged variant)
     mode: None, // Option<u16>
     owner: None, // untagged enum Option<Identity>
     group: None,
   ),
   "full-format/all-fields": ( // Name of Struct
-    content: Some("contents"), // = EntryData::File(Some(String::from("contents")))
+    content: File("contents"), // = EntryData::File(Some(String::from("contents")))
     mode: 0o644,
     owner: "root", // = Some(Identity::Name(String::from("root")))
     group: 0, // = Some(Identity::ID(0u32))
   ),
   "is/it/too/verbose?": TarEntry(
-    content: Some("verbose string"),
+    content: File("verbose string"),
     mode: Some(0o664),
     owner: Some(0),
     group: Some("everyone"),

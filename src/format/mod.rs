@@ -26,6 +26,8 @@ pub enum Identity {
 #[derive(Debug)]
 #[derive(Serialize, Deserialize)]
 pub enum EntryData {
+  /// File, None for a 0-byte one
+  File(Option<String>),
   Directory,
   /// Hard Link (only effective within archive)
   Hardlink(PathBuf),
@@ -37,8 +39,6 @@ pub enum EntryData {
   BlockDev(u32, u32),
   /// Named Pipes for Linux
   FIFO,
-  #[serde(untagged)]
-  File(Option<String>),
 }
 
 impl From<&EntryData> for tar::EntryType {

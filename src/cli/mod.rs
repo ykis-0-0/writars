@@ -4,6 +4,8 @@ use clap::Parser;
 
 mod io;
 mod serde;
+
+pub(crate) use io::{find_reader, find_writer};
 pub(crate) use serde::get_ron_spec;
 
 #[derive(Debug, Parser)]

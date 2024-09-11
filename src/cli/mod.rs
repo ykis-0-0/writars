@@ -19,7 +19,7 @@ pub(crate) struct Cli {
   #[arg(long, short)]
   pub output: PathBuf,
 
-  // Overwrite existing path
+  /// Overwrite existing path
   #[arg(long = "force", short = 'f')]
   pub overwrite_out_path: bool
 

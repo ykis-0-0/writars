@@ -2,7 +2,7 @@
 use eyre::Result as eResult;
 use crate::lib;
 
-const THE_SPECIMEN: &'static str = include_str!("./specimen/extensive.ron");
+const THE_SPECIMEN: &'static str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/mocks/extensive.ron"));
 
 #[test]
 fn test_sample_deserialize() -> eResult<()>{

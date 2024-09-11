@@ -1,0 +1,22 @@
+[package]
+edition = "2021"
+name = "wri-ta-rs"
+authors = ["ykis-0-0"]
+version = "0.0.0-alpha"
+
+[dependencies]
+tar = "0"
+ron = "0"
+
+# For console logging
+color-eyre = "0"
+eyre = "0"
+
+# For cli and input parsing
+[dependencies.clap]
+version = "4"
+features = ["derive", "cargo"]
+
+[dependencies.serde]
+version = "1"
+features = ["derive"]

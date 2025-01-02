@@ -14,7 +14,7 @@ Options:
 ```
 
 ## Input format
-[Check Here](./src/cli/specimen/extensive.ron)
+[Check Here](./mocks/extensive.ron)
 
 ## Output format
 A `.tar` archive, what else do you want?

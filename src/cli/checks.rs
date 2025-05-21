@@ -5,7 +5,7 @@ use crate::lib;
 const THE_SPECIMEN: &'static str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/mocks/extensive.ron"));
 
 #[test]
-fn test_sample_deserialize() -> eResult<()>{
+fn test_sample_deserialize() -> eResult<()> {
   let parse_result = super::get_ron_spec().from_str::<lib::TarfileSpec>(THE_SPECIMEN)?;
 
   println!("{:?}", parse_result);

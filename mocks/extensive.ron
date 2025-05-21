@@ -1,5 +1,6 @@
 {
   "min-format/0byte-file": (
+    // Bet it's the simplest you can get right?
     content: File(None),
   ),
   "min-format/only-content": (
@@ -9,17 +10,32 @@
     // Use normal string for base64-encoded contents
     content: File("QmFzZTY0IGFsc28gc3VwcG9ydGVkIQ=="),
   ),
+
   "min-format/optin-mode": (
     content: File(None),
-    mode: 0o600,
+    mode: 0o600, // You can use decimal if you hate your future self enough
+  ),
+
+  "min-format/optin-owner": (
+    content: File(b"Can include owner, group, or both"),
+    owner: "root",
   ),
   "min-format/optin-group": (
-    content: File(b"Can include owner/group/both"),
-    group: "wheel",
+    content: File(b"You can also directly specify UID and/or GID"),
+    group: 0,
   ),
+  "min-format/optin-both": (
+    content: File(b"Or even better, both name and ID!"),
+    owner: ("vscode", 1000),
+    group: ("wheel", 1),
+  ),
+
   "min-format/directory": (
-    content: Directory, // Refer to /src/format/mod.rs for more content types
+    content: Directory, // Please see /src/format/mod.rs for more content types
   ),
+
+  // Here's the fuller picture i guess
+
   "full-format/0byte-file": (
     content: File(None), // EntryData::File (untagged variant)
     mode: None, // Option<u16>
@@ -30,7 +46,7 @@
     content: File(b"contents"), // = EntryData::File(Some(String::from("contents")))
     mode: 0o644,
     owner: "root", // = Some(Identity::Name(String::from("root")))
-    group: 0, // = Some(Identity::ID(0u32))
+    group: ("wheel", 1), // = Some(Identity::Pair(Some(String::from("wheel"), 0u32)))
   ),
   "is/it/too/verbose?": TarEntry(
     content: File(b"verbose string"),

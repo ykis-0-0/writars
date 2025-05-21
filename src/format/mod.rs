@@ -21,6 +21,7 @@ pub struct TarEntry {
 pub enum Identity {
   ID(u32),
   Name(String),
+  Pair(String, u32)
 }
 
 #[derive(Debug)]
@@ -57,23 +58,39 @@ impl From<&EntryData> for tar::EntryType {
   }
 }
 
+type FullIdentity = (Option<String>, Option<u32>);
+
+impl From<Identity> for FullIdentity {
+  fn from(value: Identity) -> Self {
+    match value {
+        Identity::ID(val) => (None, Some(val)),
+        Identity::Name(val) => (Some(val), None),
+        Identity::Pair(name, id) => (Some(name), Some(id)),
+    }
+  }
+}
+
 impl TryFrom<TarEntry> for (tar::Header, Vec<u8>) {
   type Error = std::io::Error;
 
   fn try_from(row: TarEntry) -> ioResult<(tar::Header, Vec<u8>)> {
     let mut header = tar::Header::new_ustar();
 
-    if let Some(thing) = row.owner {
-      match thing {
-        Identity::ID(n) => header.set_uid(n.into()),
-        Identity::Name(who) => header.set_username(&who)?,
+    if let Some((maybe_owner, maybe_uid)) = row.owner.map(Into::<FullIdentity>::into) {
+      if let Some(one) = maybe_owner {
+        header.set_username(&one)?;
+      }
+      if let Some(id) = maybe_uid {
+        header.set_uid(id.into());
       }
     }
 
-    if let Some(thing) = row.group {
-      match thing {
-        Identity::ID(n) => header.set_gid(n.into()),
-        Identity::Name(which) => header.set_groupname(&which)?,
+    if let Some((maybe_group, maybe_gid)) = row.group.map(Into::<(Option<String>, Option<u32>)>::into) {
+      if let Some(group) = maybe_group {
+        header.set_groupname(&group)?;
+      }
+      if let Some(id) = maybe_gid {
+        header.set_gid(id.into());
       }
     }
 

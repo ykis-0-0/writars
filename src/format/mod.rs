@@ -27,7 +27,7 @@ pub enum Identity {
 #[derive(Serialize, Deserialize)]
 pub enum EntryData {
   /// File, None for a 0-byte one
-  File(Option<String>),
+  File(#[serde(with = "serde_bytes")] Option<Vec<u8>>),
   Directory,
   /// Hard Link (only effective within archive)
   Hardlink(PathBuf),
@@ -57,20 +57,11 @@ impl From<&EntryData> for tar::EntryType {
   }
 }
 
-impl TryFrom<TarEntry> for (tar::Header, Option<String>) {
+impl TryFrom<TarEntry> for (tar::Header, Vec<u8>) {
   type Error = std::io::Error;
 
-  fn try_from(row: TarEntry) -> ioResult<(tar::Header, Option<String>)> {
+  fn try_from(row: TarEntry) -> ioResult<(tar::Header, Vec<u8>)> {
     let mut header = tar::Header::new_ustar();
-
-    let (row, content) = {
-      let mut row = row;
-      let content = match &mut row.content {
-        EntryData::File(option) => option.take(),
-        _ => None,
-      };
-      (row, content)
-    };
 
     if let Some(thing) = row.owner {
       match thing {
@@ -89,20 +80,17 @@ impl TryFrom<TarEntry> for (tar::Header, Option<String>) {
     // Type handlings and default mode
     header.set_entry_type((&row.content).into());
     let default_m_mode = match row.content {
-      EntryData::File(Some(_)) => {
-        unreachable!("Erroneous handling, string data will be lost");
-      },
-      EntryData::File(None) => {
+      EntryData::File(_) => {
         0o0664
       },
       EntryData::Directory => {
         0o0775
       },
-      EntryData::Hardlink(p) => {
+      EntryData::Hardlink(ref p) => {
         header.set_link_name(p)?;
         0o0664
       },
-      EntryData::Symlink(p) => {
+      EntryData::Symlink(ref p) => {
         header.set_link_name(p)?;
         0o0777
       },
@@ -117,31 +105,29 @@ impl TryFrom<TarEntry> for (tar::Header, Option<String>) {
     };
     header.set_mode(row.mode.unwrap_or(default_m_mode).into());
 
+    let content = match row.content {
+        EntryData::File(Some(bytes)) => bytes,
+        _ => Vec::new(),
+    };
+
     Ok((header, content))
   }
 }
 
 pub fn mk_archive<P: AsRef<Path>>(from: std::collections::HashMap<P, TarEntry>) -> std::io::Result<Vec<u8>> {
-  use std::io::Read;
 
-  fn extractor<P>((path, data): (P, TarEntry)) -> ioResult<(P, tar::Header, Box<dyn std::io::Read>, u64)> {
+  fn decoupler<P>((path, data): (P, TarEntry)) -> ioResult<(P, tar::Header, Box<dyn std::io::Read>, u64)> {
     use std::collections::VecDeque;
     let (header, content) = data.try_into()?;
 
-    let (size, reader) = content
-      .map(String::into_bytes)
-      .map(VecDeque::from)
-      .map(Box::new)
-      .map(|b| (b.len() as u64, b as Box<dyn Read>))
-      .unwrap_or((0, Box::new(std::io::empty())))
-    ;
+    let (size, reader) = (content.len() as u64, Box::new(VecDeque::<_>::from(content)));
 
     Ok((path, header, reader, size))
   }
 
   let rows = from.into_iter()
-  .map(extractor)
-  .collect::<ioResult<Vec<_>>>()?;
+    .map(decoupler)
+    .collect::<ioResult<Vec<_>>>()?;
   let mut builder = tar::Builder::new(Vec::new());
 
   for (path, mut header, content, size) in rows {

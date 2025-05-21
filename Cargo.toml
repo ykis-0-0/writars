@@ -7,6 +7,7 @@ version = "0.0.0-alpha"
 [dependencies]
 tar = "0"
 ron = "0"
+serde_bytes = "0"
 
 # For console logging
 color-eyre = "0"
